@@ -13,11 +13,12 @@ Alert message
 
 
 webhook service
-cd /etc/systemd/system/
 
-touch webhook.service
+1. cd /etc/systemd/system/
 
-sudo nano webhook.service
+2. touch webhook.service
+
+3. sudo nano webhook.service
 
 Add:
 ///
