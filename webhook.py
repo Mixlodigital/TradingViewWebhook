@@ -2,7 +2,7 @@ import requests
 import json
 import hmac
 import hashlib
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -34,23 +34,35 @@ def place_bitstamp_order(quantity, price, order_type):
     order = json.loads(response.text)
     return order
 
-@app.route('/alert', methods=['POST'])
-def handle_alert_webhook():
-    alert = request.json
-    if alert['strategy'] == 'Nawashi Masterpiece':
-        if alert['action'] == 'long':
-            eth_available, usd_available, usdt_available = get_bitstamp_balance()
-            price = float(alert['price'])
-            quantity = usdt_available / price
-            place_bitstamp_order(quantity, price, 'long')
-        elif alert['action'] == 'short':
-            eth_available, usd_available, usdt_available = get_bitstamp_balance()
-            price = float(alert['price'])
-            quantity = eth_available
-            place_bitstamp_order(quantity, price, 'short')
-        else:
-            print('Unknown action:', alert['action'])
-    return 'OK'
+@app.route('/', methods=['POST'])
+def webhook():
+    data = request.get_json()
+    if 'text' in data:
+        text = data['text']
+        if 'alert on' in text and 'chart' in text:
+            alert_data = {
+                'type': 'TradingView Alert',
+                'ticker': data['ticker'],
+                'interval': data['interval'],
+                'order_type': data['order_type'],
+                'quantity': data['quantity'],
+                'symbol': data['ticker'],
+                'price': data['price']
+            }
+            print(alert_data)
+            if alert_data['order_type'] == 'long':
+                eth_available, usd_available, usdt_available = get_bitstamp_balance()
+                price = float(alert_data['price'])
+                quantity = usdt_available / price
+                place_bitstamp_order(quantity, price, 'long')
+            elif alert_data['order_type'] == 'short':
+                eth_available, usd_available, usdt_available = get_bitstamp_balance()
+                price = float(alert_data['price'])
+                quantity = eth_available
+                place_bitstamp_order(quantity, price, 'short')
+            else:
+                print('Unknown order type:', alert_data['order_type'])
+    return jsonify(success=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
