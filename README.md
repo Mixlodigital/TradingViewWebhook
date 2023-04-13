@@ -46,3 +46,13 @@ sudo systemctl start webhook
 
 sudo systemctl status webhook
 
+
+
+flask server
+
+export FLASK_APP=webhook.py
+flask run --host=0.0.0.0 --port=5000
+
+2nd terminal
+
+python3 webhook.py
