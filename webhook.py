@@ -2,6 +2,9 @@ import requests
 import json
 import hmac
 import hashlib
+from flask import Flask, request
+
+app = Flask(__name__)
 
 BITSTAMP_API_KEY = 'your_api_key'
 BITSTAMP_SECRET_KEY = 'your_secret_key'
@@ -31,8 +34,9 @@ def place_bitstamp_order(quantity, price, order_type):
     order = json.loads(response.text)
     return order
 
-def handle_alert_webhook(json_data):
-    alert = json.loads(json_data)
+@app.route('/alert', methods=['POST'])
+def handle_alert_webhook():
+    alert = request.json
     if alert['strategy'] == 'Nawashi Masterpiece':
         if alert['action'] == 'long':
             eth_available, usd_available, usdt_available = get_bitstamp_balance()
@@ -46,6 +50,7 @@ def handle_alert_webhook(json_data):
             place_bitstamp_order(quantity, price, 'short')
         else:
             print('Unknown action:', alert['action'])
+    return 'OK'
 
-# replace BITSTAMP_API_KEY, BITSTAMP_SECRET_KEY, BITSTAMP_CUSTOMER_ID with your own values
-# listen to webhook endpoint and call handle_alert_webhook function when an alert is received
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
