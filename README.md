@@ -38,3 +38,11 @@ Restart=always
 WantedBy=multi-user.target
 
 ///
+
+sudo systemctl daemon-reload
+
+sudo systemctl start webhook
+
+
+sudo systemctl status webhook
+
